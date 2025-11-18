@@ -1,0 +1,92 @@
+1700分
+https://codeforces.com/contest/1365/problem/D
+这道题要求判断能不能通过添加墙壁来让好人全部出去，坏人全部留下；
+我的思路是首先判断有没有好人，如果没有好人那直接把出口堵住就可以了，如果有好人的话那就想怎么把坏人锁住
+最简单的一个思路就是把坏人相邻的格子全部堵住，这样的话坏人一定走不了
+之后我们就要判断这种情况下好人能不能正常离开，此处我选择从终点往回BFS，每次遇到一个好人就标记一下，最后看一下有没有未被标记的好人即可
+AC代码
+void solve() {
+    int n, m;
+    std::cin >> n >> m;
+
+    std::vector<std::string> ss(n);
+    for (int i = 0; i < n; i++) {
+        std::cin >> ss[i];
+    }
+
+    int cntg = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (ss[i][j] == 'G') {
+                cntg++;
+            }
+        }
+    }
+
+    if (cntg == 0) {
+        std::cout << "Yes" << "\n";
+        return ;
+    }
+
+    std::array<int, 4> dx{0, 1, -1, 0};
+    std::array<int, 4> dy{1, 0, 0, -1};
+ 
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (ss[i][j] == 'B') {
+                for (int k = 0; k < 4; k++) {
+                    int x = i + dx[k];
+                    int y = j + dy[k];
+                    if (x < 0 || x >= n || y < 0 || y >= m) {
+                        continue;
+                    }
+                    if (ss[x][y] == 'G') {
+                        std::cout << "No" << "\n";
+                        return ;
+                    }
+                    if (ss[x][y] == '.') {
+                        ss[x][y] = '#';
+                    }
+                }
+            }
+        }        
+    }
+
+    if (ss.back().back() == '#') {
+        std::cout << "No" << "\n";
+        return ;
+    }
+
+    std::vector<std::vector<bool>> chk(n, std::vector<bool>(m));
+    std::queue<std::pair<int, int>> q;
+    q.push({n - 1, m - 1});
+    while (!q.empty()) {
+        auto [x, y] = q.front();
+        q.pop();
+
+        for (int i = 0; i < 4; i++) {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+
+            if (nx < 0 || ny < 0 || nx >= n || ny >= m || ss[nx][ny] == '#' || ss[nx][ny] == 'B') {
+                continue;
+            }
+
+            if (chk[nx][ny] == false) {
+                q.push({nx, ny});
+            }
+            chk[nx][ny] = true;
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (ss[i][j] == 'G' && chk[i][j] == false) {
+                std::cout << "No" << "\n";
+                return ;
+            }
+        } 
+    }
+
+    std::cout << "Yes" << "\n";
+}
